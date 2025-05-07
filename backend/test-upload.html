@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Upload Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1 {
+      color: #333;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    select, input[type="file"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: #f9f9f9;
+    }
+    .error {
+      color: red;
+    }
+    .success {
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <h1>File Upload Test</h1>
+  
+  <form id="uploadForm" enctype="multipart/form-data">
+    <div class="form-group">
+      <label for="uploadType">Upload Type:</label>
+      <select id="uploadType" name="uploadType">
+        <option value="profile">Profile</option>
+        <option value="project">Project</option>
+        <option value="document">Document</option>
+        <option value="message">Message</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label for="file">Select File:</label>
+      <input type="file" id="file" name="file">
+    </div>
+    
+    <button type="submit">Upload File</button>
+  </form>
+  
+  <div id="result" class="result" style="display: none;"></div>
+  
+  <script>
+    document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = 'Uploading...';
+      resultDiv.style.display = 'block';
+      resultDiv.className = 'result';
+      
+      const uploadType = document.getElementById('uploadType').value;
+      const fileInput = document.getElementById('file');
+      
+      if (!fileInput.files.length) {
+        resultDiv.innerHTML = 'Please select a file to upload.';
+        resultDiv.className = 'result error';
+        return;
+      }
+      
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+      
+      try {
+        // This is a test endpoint - you would need to create this on your server
+        const response = await fetch(`http://localhost:5001/api/test-upload/${uploadType}`, {
+          method: 'POST',
+          body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          resultDiv.innerHTML = `
+            <p class="success">File uploaded successfully!</p>
+            <p>File path: ${data.filePath}</p>
+            <p>File size: ${data.fileSize} bytes</p>
+            <p><a href="${data.fileUrl}" target="_blank">View File</a></p>
+          `;
+        } else {
+          resultDiv.innerHTML = `<p class="error">Upload failed: ${data.message}</p>`;
+          resultDiv.className = 'result error';
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+        resultDiv.className = 'result error';
+      }
+    });
+  </script>
+</body>
+</html>
